@@ -1,9 +1,15 @@
 {
   "name": "@conreo/pi-zenmux",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "ZenMux provider extension for Pi — dynamic model discovery with caching",
+  "author": "conreo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/conreo/pi-zenmux"
+  },
   "keywords": [
-    "pi-package",
+    "pi",
     "pi-extension",
     "zenmux",
     "llm",
@@ -11,7 +17,6 @@
     "provider",
     "gateway"
   ],
-  "license": "MIT",
   "pi": {
     "extensions": [
       "./extensions/index.ts"
