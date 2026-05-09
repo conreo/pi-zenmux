@@ -5,7 +5,7 @@ ZenMux provider extension for [Pi](https://github.com/mariozechner/pi-coding-age
 ## Install
 
 ```bash
-pi install npm:@neuron-mr-white/pi-zenmux
+pi install npm:@conreo/pi-zenmux
 ```
 
 ## Setup

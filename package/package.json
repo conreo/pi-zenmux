@@ -1,5 +1,5 @@
 {
-  "name": "@neuron-mr-white/pi-zenmux",
+  "name": "@conreo/pi-zenmux",
   "version": "1.0.2",
   "description": "ZenMux provider extension for Pi — dynamic model discovery with caching",
   "keywords": [
