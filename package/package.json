@@ -1,0 +1,23 @@
+{
+  "name": "@neuron-mr-white/pi-zenmux",
+  "version": "1.0.2",
+  "description": "ZenMux provider extension for Pi — dynamic model discovery with caching",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "zenmux",
+    "llm",
+    "ai",
+    "provider",
+    "gateway"
+  ],
+  "license": "MIT",
+  "pi": {
+    "extensions": [
+      "./extensions/index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*"
+  }
+}
