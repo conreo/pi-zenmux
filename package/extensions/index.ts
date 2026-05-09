@@ -73,13 +73,29 @@ function toProviderModels(models: ZenMuxModel[]) {
     return model;
   });
 }
-// ========== Fetch interceptor: disable thinking + role sanitization ==========
+// ========== Fetch interceptor: DeepSeek V4 + role sanitization ==========
+// DeepSeek V4 requires two things that Pi doesn't do:
+//   1. Every assistant message after a tool call MUST carry reasoning_content
+//   2. All tool schemas MUST have type: "object" (not null/undefined)
+// See: https://github.com/musistudio/claude-code-router/issues/1378
+function fixToolSchema(schema: any): void {
+  if (!schema || typeof schema !== "object") return;
+  if (!schema.type || schema.type === null) schema.type = "object";
+  if (schema.properties && typeof schema.properties === "object") {
+    for (const prop of Object.values(schema.properties) as any[]) {
+      if (prop && typeof prop === "object") fixToolSchema(prop);
+    }
+  }
+  if (schema.items && typeof schema.items === "object") {
+    fixToolSchema(schema.items);
+  }
+}
+
 function installZenMuxFix(): void {
   const originalFetch = globalThis.fetch;
 
   globalThis.fetch = async function (input, init) {
     const url = typeof input === "string" ? input : input.toString();
-    // Match any ZenMux chat completions endpoint (including /v1/chat/completions)
     if (!url.includes("zenmux.ai") || !(url.includes("/chat/completions") || url.includes("/v1/chat/completions"))) {
       return originalFetch(input, init);
     }
@@ -93,15 +109,44 @@ function installZenMuxFix(): void {
 
     // 1. Sanitize roles: rename "developer" -> "system" for ZenMux compat
     if (bodyObj.messages && Array.isArray(bodyObj.messages)) {
+      let hasToolResult = false;
       for (const msg of bodyObj.messages) {
         if (msg.role === "developer") {
           console.log("[zenmux] Renamed role 'developer' -> 'system'");
           msg.role = "system";
         }
+        // Detect if there's a tool_result in conversation history
+        if (msg.role === "user" && Array.isArray(msg.content)) {
+          for (const block of msg.content) {
+            if (block.type === "tool_result" || block.type === "tool-result") {
+              hasToolResult = true;
+              break;
+            }
+          }
+        }
+      }
+
+      // 2. DeepSeek V4 fix: inject reasoning_content into assistant messages
+      //    after tool calls. Without this, DeepSeek returns 400:
+      //    "The reasoning_content in the thinking mode must be passed back"
+      if (hasToolResult) {
+        for (const msg of bodyObj.messages) {
+          if (msg.role === "assistant" && msg.reasoning_content === undefined && msg.reasoning_content !== "") {
+            msg.reasoning_content = "";
+          }
+        }
       }
     }
 
-    // Replace the request body
+    // 3. Fix tool schemas: ensure type: "object" on all tool definitions
+    //    DeepSeek rejects schemas with type: null or missing type
+    if (Array.isArray(bodyObj.tools)) {
+      for (const tool of bodyObj.tools) {
+        const schema = tool.function?.input_schema || tool.function?.parameters;
+        if (schema) fixToolSchema(schema);
+      }
+    }
+
     init = { ...init, body: JSON.stringify(bodyObj) };
     return originalFetch(input, init);
   };

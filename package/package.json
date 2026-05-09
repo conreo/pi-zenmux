@@ -1,6 +1,6 @@
 {
   "name": "@conreo/pi-zenmux",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "ZenMux provider extension for Pi — dynamic model discovery with caching",
   "author": "conreo",
   "license": "MIT",
@@ -23,6 +23,7 @@
     ]
   },
   "peerDependencies": {
-    "@mariozechner/pi-coding-agent": "*"
+    "@mariozechner/pi-coding-agent": "*",
+    "@earendil-works/pi-coding-agent": "*"
   }
 }
